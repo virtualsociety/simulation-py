@@ -72,6 +72,7 @@ def Citizen(env, name, year):
     nrchildren = generateNrChildren(nrchildrenprobability, maritalstatus, age, children)
     birthageprobability = calculateBirthAgeProbability(df_birthage, baseyear)
     birthage = generateBirthAge(birthageprobability, gender, age, nrchildren, maritalstatus)
+    alive = 1
     lifeevent = 'Life event: Created'
     
     #Append to lists                                                                                                                                                                                                                                                                                                                                                                                                                              citizen_children_list, citizen_nrchildren_list, citizen_birthage_list)
@@ -91,6 +92,7 @@ def Citizen(env, name, year):
     citizen_children_list.append(children)
     citizen_nrchildren_list.append(nrchildren)
     citizen_birthage_list.append(birthage)
+    citizen_alive_list.append(alive)
     
     while True:
         #Adulthood
@@ -119,6 +121,7 @@ def Citizen(env, name, year):
             citizen_children_list.append(children)
             citizen_nrchildren_list.append(nrchildren)
             citizen_birthage_list.append(birthage)
+            citizen_alive_list.append(alive)
         
         #Married
         if marriageintention == 'Yes' and not (marriageage is None):
@@ -143,6 +146,7 @@ def Citizen(env, name, year):
                 citizen_children_list.append(children)
                 citizen_nrchildren_list.append(nrchildren)
                 citizen_birthage_list.append(birthage)
+                citizen_alive_list.append(alive)
         
         #Births
         if children == 'Yes' and not (birthage is None):
@@ -167,6 +171,7 @@ def Citizen(env, name, year):
                 citizen_children_list.append(children)
                 citizen_nrchildren_list.append(nrchildren)
                 citizen_birthage_list.append(birthage)
+                citizen_alive_list.append(alive)
         
         #Divorced
         if maritalstatus == 'Married':
@@ -190,12 +195,14 @@ def Citizen(env, name, year):
             citizen_children_list.append(children)
             citizen_nrchildren_list.append(nrchildren)
             citizen_birthage_list.append(birthage)
+            citizen_alive_list.append(alive)
         
         #Deceased
         if lifeexpectancy > age:
             delta_deceased = (lifeexpectancy - age) * 365
             yield env.timeout(delta_deceased)
             age = lifeexpectancy + 1
+            alive = 0
             citizen_event_list.append("Life event: Deceased")
             citizen_ID_list.append(name)
             citizen_timestamp_list.append(env.now)
@@ -212,6 +219,7 @@ def Citizen(env, name, year):
             citizen_children_list.append(children)
             citizen_nrchildren_list.append(nrchildren)
             citizen_birthage_list.append(birthage)
+            citizen_alive_list.append(alive)
         
         yield env.timeout(180)
         
@@ -241,6 +249,7 @@ def Newborn(env, name, year, runtime):
     nrchildren = generateNrChildren(nrchildrenprobability, maritalstatus, age, children)
     birthageprobability = calculateBirthAgeProbability(df_birthage, baseyear)
     birthage = generateBirthAge(birthageprobability, gender, age, nrchildren, maritalstatus)
+    alive = 1
     lifeevent = 'Life event: Created'
     
     #Time until birth
@@ -264,6 +273,7 @@ def Newborn(env, name, year, runtime):
     citizen_children_list.append(children)
     citizen_nrchildren_list.append(nrchildren)
     citizen_birthage_list.append(birthage)
+    citizen_alive_list.append(alive)
     
     while True:
         
@@ -293,6 +303,7 @@ def Newborn(env, name, year, runtime):
             citizen_children_list.append(children)
             citizen_nrchildren_list.append(nrchildren)
             citizen_birthage_list.append(birthage)
+            citizen_alive_list.append(alive)
         
         #Married
         if marriageintention == 'Yes' and not (marriageage is None):
@@ -317,6 +328,7 @@ def Newborn(env, name, year, runtime):
                 citizen_children_list.append(children)
                 citizen_nrchildren_list.append(nrchildren)
                 citizen_birthage_list.append(birthage)
+                citizen_alive_list.append(alive)
                 
         #Births
         if children == 'Yes' and not (birthage is None):
@@ -341,6 +353,7 @@ def Newborn(env, name, year, runtime):
                 citizen_children_list.append(children)
                 citizen_nrchildren_list.append(nrchildren)
                 citizen_birthage_list.append(birthage)
+                citizen_alive_list.append(alive)
                 
         #Divorced
         if maritalstatus == 'Married':
@@ -364,12 +377,14 @@ def Newborn(env, name, year, runtime):
             citizen_children_list.append(children)
             citizen_nrchildren_list.append(nrchildren)
             citizen_birthage_list.append(birthage)
+            citizen_alive_list.append(alive)
         
         #Deceased
         if lifeexpectancy > age:
             delta_deceased = (lifeexpectancy - age) * 365
             yield env.timeout(delta_deceased)
             age = lifeexpectancy + 1
+            alive = 0
             citizen_event_list.append("Life event: Deceased")
             citizen_ID_list.append(name)
             citizen_timestamp_list.append(env.now)
@@ -386,6 +401,7 @@ def Newborn(env, name, year, runtime):
             citizen_children_list.append(children)
             citizen_nrchildren_list.append(nrchildren)
             citizen_birthage_list.append(birthage)
+            citizen_alive_list.append(alive)
         
         yield env.timeout(180)
 
@@ -400,7 +416,7 @@ runtime =generateRuntime(start_date, end_date)
 df_gender, df_age, df_lifeexpectancy, df_maritalstatus, df_marriageduration, df_employmentstatus, df_income, df_marriage, df_marriage2, df_withchildren, df_nrchildren, df_birthage, df_capital = readInputFiles()
 
 #Create empty lists
-citizen_event_list, citizen_ID_list, citizen_timestamp_list, citizen_gender_list, citizen_age_list, citizen_lifeexpectancy_list, citizen_maritalstatus_list, citizen_marriageduration_list, citizen_marriageintention_list, citizen_marriageage_list, citizen_employmentstatus_list, citizen_income_list, citizen_capital_list, citizen_children_list, citizen_nrchildren_list, citizen_birthage_list = createEmptyLists()
+citizen_event_list, citizen_ID_list, citizen_timestamp_list, citizen_gender_list, citizen_age_list, citizen_lifeexpectancy_list, citizen_maritalstatus_list, citizen_marriageduration_list, citizen_marriageintention_list, citizen_marriageage_list, citizen_employmentstatus_list, citizen_income_list, citizen_capital_list, citizen_children_list, citizen_nrchildren_list, citizen_birthage_list, citizen_alive_list = createEmptyLists()
 
 #Determine the size of the base population
 populationsize_base = int(calculateBasePopulationSize(df_gender, baseyear, scalar))
@@ -442,7 +458,8 @@ df_data = pd.DataFrame(
      'Capital': citizen_capital_list,
      'Children': citizen_children_list,
      'Nr children': citizen_nrchildren_list,
-     'Birth age': citizen_birthage_list
+     'Birth age': citizen_birthage_list,
+     'Alive': citizen_alive_list
     })
 
 df_data = df_data.sort_values(['ID', 'Timestamp'])
