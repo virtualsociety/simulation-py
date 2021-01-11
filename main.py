@@ -16,6 +16,7 @@ from runtime import generateRuntime
 
 from readinputfiles import readInputFiles
 from emptylists import createEmptyLists
+from transformtimestamp import transformTimestamp
 
 from genderprobability import calculateGenderProbability
 from ageprobability import calculateAgeProbability
@@ -46,31 +47,31 @@ from nrchildren import generateNrChildren
 from birthage import generateBirthAge
 
 def Citizen(env, name, year):
-    genderprobability = calculateGenderProbability(df_gender, baseyear)
+    genderprobability = calculateGenderProbability(df_gender, baseyear + int(env.now / 365))
     gender = generateGender(genderprobability)
-    ageprobability = calculateAgeProbability(df_age, baseyear)
+    ageprobability = calculateAgeProbability(df_age, baseyear + int(env.now / 365))
     age = generateAge(ageprobability)
-    lifeexpectancyprobability = calculateLifeExpectancyProbability(df_lifeexpectancy, baseyear, gender)
+    lifeexpectancyprobability = calculateLifeExpectancyProbability(df_lifeexpectancy, baseyear + int(env.now / 365), gender)
     lifeexpectancy = generateLifeExpectancy(lifeexpectancyprobability)
-    maritalstatusprobability = calculateMaritalStatusProbability(df_maritalstatus, baseyear, age)
+    maritalstatusprobability = calculateMaritalStatusProbability(df_maritalstatus, baseyear + int(env.now / 365), age)
     maritalstatus = generateMaritalStatus(maritalstatusprobability)
-    marriagedurationprobability = calculateMarriageDurationProbability(df_marriageduration, baseyear)
+    marriagedurationprobability = calculateMarriageDurationProbability(df_marriageduration, baseyear + int(env.now / 365))
     marriageduration = generateMarriageDuration(marriagedurationprobability, maritalstatus)
-    marriageintentionprobability = calculateMarriageIntentionProbability(df_marriage2, baseyear)
+    marriageintentionprobability = calculateMarriageIntentionProbability(df_marriage2, baseyear + int(env.now / 365))
     marriageintention = generateMarriageIntention(marriageintentionprobability)
-    marriageageprobability = calculateMarriageAgeProbability(df_marriage, baseyear, gender)
+    marriageageprobability = calculateMarriageAgeProbability(df_marriage, baseyear + int(env.now / 365), gender)
     marriageage = generateMarriageAge(marriageageprobability, maritalstatus, marriageintention)
-    employmentstatusprobability = calculateEmploymentStatusProbability(df_employmentstatus, baseyear)
+    employmentstatusprobability = calculateEmploymentStatusProbability(df_employmentstatus, baseyear + int(env.now / 365))
     employmentstatus = generateEmploymentStatus(employmentstatusprobability, age)
-    incomeprobability = calculateIncomeProbability(df_income, baseyear)
+    incomeprobability = calculateIncomeProbability(df_income, baseyear + int(env.now / 365))
     income = generateIncome(incomeprobability, age)
-    capitalprobability = calculateCapitalProbability(df_capital, baseyear)
+    capitalprobability = calculateCapitalProbability(df_capital, baseyear  + int(env.now / 365))
     capital = generateCapital(capitalprobability, age)
-    childrenprobability = calculateChildrenProbability(df_withchildren, baseyear)
+    childrenprobability = calculateChildrenProbability(df_withchildren, baseyear + int(env.now / 365))
     children = generateChildren(childrenprobability)
-    nrchildrenprobability = calculateNrChildrenProbability(df_nrchildren, baseyear)
+    nrchildrenprobability = calculateNrChildrenProbability(df_nrchildren, baseyear + int(env.now / 365))
     nrchildren = generateNrChildren(nrchildrenprobability, maritalstatus, age, children)
-    birthageprobability = calculateBirthAgeProbability(df_birthage, baseyear)
+    birthageprobability = calculateBirthAgeProbability(df_birthage, baseyear + int(env.now / 365))
     birthage = generateBirthAge(birthageprobability, gender, age, nrchildren, maritalstatus)
     alive = 1
     lifeevent = 'Life event: Created'
@@ -79,6 +80,7 @@ def Citizen(env, name, year):
     citizen_event_list.append(lifeevent)
     citizen_ID_list.append(name)
     citizen_timestamp_list.append(env.now)
+    citizen_date_list.append(transformTimestamp(start_date, env.now))
     citizen_gender_list.append(gender)
     citizen_age_list.append(age)
     citizen_lifeexpectancy_list.append(lifeexpectancy)
@@ -97,7 +99,7 @@ def Citizen(env, name, year):
     while True:
         #Adulthood
         if age < 18:
-            delta_adulthood = (18- age) * 365
+            delta_adulthood = (18- age) * 365 + random.randint(1,365)
             yield env.timeout(delta_adulthood)
             age = 18
             employmentstatus = generateEmploymentStatus(employmentstatusprobability, age)
@@ -108,6 +110,7 @@ def Citizen(env, name, year):
             citizen_event_list.append("Life event: Adulthood")
             citizen_ID_list.append(name)
             citizen_timestamp_list.append(env.now)
+            citizen_date_list.append(transformTimestamp(start_date, env.now))
             citizen_gender_list.append(gender)
             citizen_age_list.append(age)
             citizen_lifeexpectancy_list.append(lifeexpectancy)
@@ -126,13 +129,14 @@ def Citizen(env, name, year):
         #Married
         if marriageintention == 'Yes' and not (marriageage is None):
             if marriageage > age:
-                delta_marriage = (marriageage - age) * 365
-                yield env.timeout(delta_marriage)
+                delta_marriage = (marriageage - age) * 365 + random.randint(1,365)
+                yield env.timeout(delta_marriage) 
                 age = marriageage
                 maritalstatus = 'Married'
                 citizen_event_list.append("Life event: Married")
                 citizen_ID_list.append(name)
                 citizen_timestamp_list.append(env.now)
+                citizen_date_list.append(transformTimestamp(start_date, env.now))
                 citizen_gender_list.append(gender)
                 citizen_age_list.append(age)
                 citizen_lifeexpectancy_list.append(lifeexpectancy)
@@ -151,13 +155,14 @@ def Citizen(env, name, year):
         #Births
         if children == 'Yes' and not (birthage is None):
             if birthage > age:
-                delta_birth = (birthage - age) * 365
+                delta_birth = (birthage - age) * 365 + random.randint(1,365)
                 yield env.timeout(delta_birth)
                 age = birthage
                 nrchildren += 1
                 citizen_event_list.append("Life event: Birth")
                 citizen_ID_list.append(name)
                 citizen_timestamp_list.append(env.now)
+                citizen_date_list.append(transformTimestamp(start_date, env.now))
                 citizen_gender_list.append(gender)
                 citizen_age_list.append(age)
                 citizen_lifeexpectancy_list.append(lifeexpectancy)
@@ -175,13 +180,14 @@ def Citizen(env, name, year):
         
         #Divorced
         if maritalstatus == 'Married':
-            delta_divorce = (env.now + (marriageduration * 365))
+            delta_divorce = (env.now + (marriageduration * 365)) + random.randint(1,365)
             yield env.timeout(delta_divorce)
             age += int(env.now / 365)
             maritalstatus = 'Divorced'
             citizen_event_list.append("Life event: Divorced")
             citizen_ID_list.append(name)
             citizen_timestamp_list.append(env.now)
+            citizen_date_list.append(transformTimestamp(start_date, env.now))
             citizen_gender_list.append(gender)
             citizen_age_list.append(age)
             citizen_lifeexpectancy_list.append(lifeexpectancy)
@@ -199,13 +205,14 @@ def Citizen(env, name, year):
         
         #Deceased
         if lifeexpectancy > age:
-            delta_deceased = (lifeexpectancy - age) * 365
+            delta_deceased = (lifeexpectancy - age) * 365 + random.randint(1,365)
             yield env.timeout(delta_deceased)
             age = lifeexpectancy + 1
             alive = 0
             citizen_event_list.append("Life event: Deceased")
             citizen_ID_list.append(name)
             citizen_timestamp_list.append(env.now)
+            citizen_date_list.append(transformTimestamp(start_date, env.now))
             citizen_gender_list.append(gender)
             citizen_age_list.append(age)
             citizen_lifeexpectancy_list.append(lifeexpectancy)
@@ -224,42 +231,43 @@ def Citizen(env, name, year):
         yield env.timeout(180)
         
 def Newborn(env, name, year, runtime):
-    genderprobability = calculateGenderProbability(df_gender, baseyear)
-    gender = generateGender(genderprobability)
-    age = 0
-    lifeexpectancyprobability = calculateLifeExpectancyProbability(df_lifeexpectancy, baseyear, gender)
-    lifeexpectancy = generateLifeExpectancy(lifeexpectancyprobability)
-    maritalstatusprobability = calculateMaritalStatusProbability(df_maritalstatus, baseyear, age)
-    maritalstatus = generateMaritalStatus(maritalstatusprobability)
-    marriagedurationprobability = calculateMarriageDurationProbability(df_marriageduration, baseyear)
-    marriageduration = generateMarriageDuration(marriagedurationprobability, maritalstatus)
-    marriageintentionprobability = calculateMarriageIntentionProbability(df_marriage2, baseyear)
-    marriageintention = generateMarriageIntention(marriageintentionprobability)
-    marriageageprobability = calculateMarriageAgeProbability(df_marriage, baseyear, gender)
-    marriageage = generateMarriageAge(marriageageprobability, maritalstatus, marriageintention)
-    employmentstatusprobability = calculateEmploymentStatusProbability(df_employmentstatus, baseyear)
-    employmentstatus = generateEmploymentStatus(employmentstatusprobability, age)
-    incomeprobability = calculateIncomeProbability(df_income, baseyear)
-    income = generateIncome(incomeprobability, age)
-    capitalprobability = calculateCapitalProbability(df_capital, baseyear)
-    capital = generateCapital(capitalprobability, age)
-    childrenprobability = calculateChildrenProbability(df_withchildren, baseyear)
-    children = generateChildren(childrenprobability)
-    nrchildrenprobability = calculateNrChildrenProbability(df_nrchildren, baseyear)
-    nrchildren = generateNrChildren(nrchildrenprobability, maritalstatus, age, children)
-    birthageprobability = calculateBirthAgeProbability(df_birthage, baseyear)
-    birthage = generateBirthAge(birthageprobability, gender, age, nrchildren, maritalstatus)
-    alive = 1
-    lifeevent = 'Life event: Created'
-    
     #Time until birth
     time_until_birth = random.randint(0, runtime)
     yield env.timeout(time_until_birth)
     
+    genderprobability = calculateGenderProbability(df_gender, baseyear + int(env.now / 365))
+    gender = generateGender(genderprobability)
+    age = 0
+    lifeexpectancyprobability = calculateLifeExpectancyProbability(df_lifeexpectancy, baseyear + int(env.now / 365), gender)
+    lifeexpectancy = generateLifeExpectancy(lifeexpectancyprobability)
+    maritalstatusprobability = calculateMaritalStatusProbability(df_maritalstatus, baseyear, age)
+    maritalstatus = generateMaritalStatus(maritalstatusprobability)
+    marriagedurationprobability = calculateMarriageDurationProbability(df_marriageduration, baseyear + int(env.now / 365))
+    marriageduration = generateMarriageDuration(marriagedurationprobability, maritalstatus)
+    marriageintentionprobability = calculateMarriageIntentionProbability(df_marriage2, baseyear + int(env.now / 365))
+    marriageintention = generateMarriageIntention(marriageintentionprobability)
+    marriageageprobability = calculateMarriageAgeProbability(df_marriage, baseyear + int(env.now / 365), gender)
+    marriageage = generateMarriageAge(marriageageprobability, maritalstatus, marriageintention)
+    employmentstatusprobability = calculateEmploymentStatusProbability(df_employmentstatus, baseyear + int(env.now / 365))
+    employmentstatus = generateEmploymentStatus(employmentstatusprobability, age)
+    incomeprobability = calculateIncomeProbability(df_income, baseyear + int(env.now / 365))
+    income = generateIncome(incomeprobability, age)
+    capitalprobability = calculateCapitalProbability(df_capital, baseyear + int(env.now / 365))
+    capital = generateCapital(capitalprobability, age)
+    childrenprobability = calculateChildrenProbability(df_withchildren, baseyear + int(env.now / 365))
+    children = generateChildren(childrenprobability)
+    nrchildrenprobability = calculateNrChildrenProbability(df_nrchildren, baseyear + int(env.now / 365))
+    nrchildren = generateNrChildren(nrchildrenprobability, maritalstatus, age, children)
+    birthageprobability = calculateBirthAgeProbability(df_birthage, baseyear + int(env.now / 365))
+    birthage = generateBirthAge(birthageprobability, gender, age, nrchildren, maritalstatus)
+    alive = 1
+    lifeevent = 'Life event: Created'
+        
     #Append to lists                                                                                                                                                                                                                                                                                                                                                                                                                              citizen_children_list, citizen_nrchildren_list, citizen_birthage_list)
     citizen_event_list.append(lifeevent)
     citizen_ID_list.append(name)
     citizen_timestamp_list.append(env.now)
+    citizen_date_list.append(transformTimestamp(start_date, env.now))
     citizen_gender_list.append(gender)
     citizen_age_list.append(age)
     citizen_lifeexpectancy_list.append(lifeexpectancy)
@@ -279,7 +287,7 @@ def Newborn(env, name, year, runtime):
         
         #Adulthood
         if age < 18:
-            delta_adulthood = (18- age) * 365
+            delta_adulthood = (18- age) * 365 + random.randint(1,365)
             yield env.timeout(delta_adulthood)
             age = 18
             employmentstatus = generateEmploymentStatus(employmentstatusprobability, age)
@@ -290,6 +298,7 @@ def Newborn(env, name, year, runtime):
             citizen_event_list.append("Life event: Adulthood")
             citizen_ID_list.append(name)
             citizen_timestamp_list.append(env.now)
+            citizen_date_list.append(transformTimestamp(start_date, env.now))
             citizen_gender_list.append(gender)
             citizen_age_list.append(age)
             citizen_lifeexpectancy_list.append(lifeexpectancy)
@@ -308,13 +317,14 @@ def Newborn(env, name, year, runtime):
         #Married
         if marriageintention == 'Yes' and not (marriageage is None):
             if marriageage > age:
-                delta_marriage = (marriageage - age) * 365
+                delta_marriage = (marriageage - age) * 365 + random.randint(1,365)
                 yield env.timeout(delta_marriage)
                 age = marriageage
                 maritalstatus = 'Married'
                 citizen_event_list.append("Life event: Married")
                 citizen_ID_list.append(name)
                 citizen_timestamp_list.append(env.now)
+                citizen_date_list.append(transformTimestamp(start_date, env.now))
                 citizen_gender_list.append(gender)
                 citizen_age_list.append(age)
                 citizen_lifeexpectancy_list.append(lifeexpectancy)
@@ -333,13 +343,14 @@ def Newborn(env, name, year, runtime):
         #Births
         if children == 'Yes' and not (birthage is None):
             if birthage > age:
-                delta_birth = (birthage - age) * 365
+                delta_birth = (birthage - age) * 365 + random.randint(1,365)
                 yield env.timeout(delta_birth)
                 age = birthage
                 nrchildren += 1
                 citizen_event_list.append("Life event: Birth")
                 citizen_ID_list.append(name)
                 citizen_timestamp_list.append(env.now)
+                citizen_date_list.append(transformTimestamp(start_date, env.now))
                 citizen_gender_list.append(gender)
                 citizen_age_list.append(age)
                 citizen_lifeexpectancy_list.append(lifeexpectancy)
@@ -357,13 +368,14 @@ def Newborn(env, name, year, runtime):
                 
         #Divorced
         if maritalstatus == 'Married':
-            delta_divorce = (env.now + (marriageduration * 365))
+            delta_divorce = (env.now + (marriageduration * 365)) + random.randint(1,365)
             yield env.timeout(delta_divorce)
             age += int(env.now / 365)
             maritalstatus = 'Divorced'
             citizen_event_list.append("Life event: Divorced")
             citizen_ID_list.append(name)
             citizen_timestamp_list.append(env.now)
+            citizen_date_list.append(transformTimestamp(start_date, env.now))
             citizen_gender_list.append(gender)
             citizen_age_list.append(age)
             citizen_lifeexpectancy_list.append(lifeexpectancy)
@@ -381,13 +393,14 @@ def Newborn(env, name, year, runtime):
         
         #Deceased
         if lifeexpectancy > age:
-            delta_deceased = (lifeexpectancy - age) * 365
+            delta_deceased = (lifeexpectancy - age) * 365 + random.randint(1,365)
             yield env.timeout(delta_deceased)
             age = lifeexpectancy + 1
             alive = 0
             citizen_event_list.append("Life event: Deceased")
             citizen_ID_list.append(name)
             citizen_timestamp_list.append(env.now)
+            citizen_date_list.append(transformTimestamp(start_date, env.now))
             citizen_gender_list.append(gender)
             citizen_age_list.append(age)
             citizen_lifeexpectancy_list.append(lifeexpectancy)
@@ -406,7 +419,7 @@ def Newborn(env, name, year, runtime):
         yield env.timeout(180)
 
 #Initialize main variables
-scalar = 1000
+scalar = 10000
 start_date = '2011-01-01' #Set the start date of the simulation (minumum 2011)
 end_date = '2012-12-31' #Set the end data of the simulation (maximum 2019)
 baseyear = int(start_date[:4])
@@ -416,7 +429,7 @@ runtime =generateRuntime(start_date, end_date)
 df_gender, df_age, df_lifeexpectancy, df_maritalstatus, df_marriageduration, df_employmentstatus, df_income, df_marriage, df_marriage2, df_withchildren, df_nrchildren, df_birthage, df_capital = readInputFiles()
 
 #Create empty lists
-citizen_event_list, citizen_ID_list, citizen_timestamp_list, citizen_gender_list, citizen_age_list, citizen_lifeexpectancy_list, citizen_maritalstatus_list, citizen_marriageduration_list, citizen_marriageintention_list, citizen_marriageage_list, citizen_employmentstatus_list, citizen_income_list, citizen_capital_list, citizen_children_list, citizen_nrchildren_list, citizen_birthage_list, citizen_alive_list = createEmptyLists()
+citizen_event_list, citizen_ID_list, citizen_timestamp_list, citizen_date_list, citizen_gender_list, citizen_age_list, citizen_lifeexpectancy_list, citizen_maritalstatus_list, citizen_marriageduration_list, citizen_marriageintention_list, citizen_marriageage_list, citizen_employmentstatus_list, citizen_income_list, citizen_capital_list, citizen_children_list, citizen_nrchildren_list, citizen_birthage_list, citizen_alive_list = createEmptyLists()
 
 #Determine the size of the base population
 populationsize_base = int(calculateBasePopulationSize(df_gender, baseyear, scalar))
@@ -445,7 +458,7 @@ env.run(until=runtime)
 df_data = pd.DataFrame(
     {'Life event': citizen_event_list,
      'ID': citizen_ID_list,
-     'Timestamp': citizen_timestamp_list,
+     'Date': citizen_date_list,
      'Gender': citizen_gender_list,
      'Age': citizen_age_list,
      'Life expectancy': citizen_lifeexpectancy_list,
@@ -462,7 +475,7 @@ df_data = pd.DataFrame(
      'Alive': citizen_alive_list
     })
 
-df_data = df_data.sort_values(['ID', 'Timestamp'])
+df_data = df_data.sort_values(['ID', 'Date'])
 
 df_data.to_csv('simulatedpopulation.csv') 
         
