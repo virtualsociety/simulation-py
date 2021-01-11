@@ -419,9 +419,9 @@ def Newborn(env, name, year, runtime):
         yield env.timeout(180)
 
 #Initialize main variables
-scalar = 10000
+scalar = 100
 start_date = '2011-01-01' #Set the start date of the simulation (minumum 2011)
-end_date = '2012-12-31' #Set the end data of the simulation (maximum 2019)
+end_date = '2013-12-31' #Set the end data of the simulation (maximum 2019)
 baseyear = int(start_date[:4])
 runtime =generateRuntime(start_date, end_date)
 
